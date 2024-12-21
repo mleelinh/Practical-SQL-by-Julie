@@ -6,7 +6,10 @@ WHERE ID%2 = 0
 -- ex2: hackerrank-weather-observation-station-4.
 SELECT COUNT(CITY) - COUNT(DISTINCT CITY) AS diff_num
 FROM STATION
+  
 -- ex3: hackerrank-the-blunder.
+SELECT CEILING(AVG(Salary) - AVG(REPLACE(Salary,0,'')))
+FROM EMPLOYEES
 
 -- ex4: datalemur-alibaba-compressed-mean.
 
