@@ -100,3 +100,29 @@ SELECT * FROM cte_w_primary UNION SELECT * FROM cte_wo_primary
 ORDER BY employee_id
 
 -- ex11: Leetcode Movie Rating
+SELECT * FROM (SELECT Users.name AS results FROM Users 
+INNER JOIN MovieRating ON Users.user_id = MovieRating.user_id
+WHERE rating = (SELECT MAX(rating)
+FROM MovieRating)) -- name rating max
+UNION 
+SELECT * FROM (SELECT Movies.title AS results FROM Movies 
+INNER JOIN MovieRating ON Movies.movie_id = MovieRating.movie_id
+WHERE rating = (SELECT MAX(rating)
+FROM MovieRating)) -- title film being rated
+
+-- ex12: Leetcode Who Has the Most Friends
+WITH cte_all_id AS (SELECT * FROM
+(
+    SELECT requester_id AS id
+    FROM RequestAccepted
+)
+UNION ALL
+SELECT * FROM
+(
+    SELECT accepter_id AS id
+    FROM RequestAccepted
+))
+SELECT id, COUNT(id) AS num FROM cte_all_id
+GROUP BY id
+ORDER BY COUNT(id) DESC
+LIMIT 1
