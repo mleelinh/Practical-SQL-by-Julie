@@ -34,3 +34,51 @@ WHERE  EXTRACT(DAY FROM visited_on) - EXTRACT(DAY FROM (SELECT MIN(visited_on) F
 ORDER BY visited_on;
 
 -- ex5: Leetcode Investment in 2016
+SELECT SUM(tiv_2016) AS tiv_2016
+FROM Insurance
+WHERE tiv_2015 IN (SELECT DISTINCT tiv_2015 FROM Insurance GROUP BY tiv_2015 HAVING COUNT(*)>1)
+AND (lat,lon) IN (SELECT lat, lon FROM Insurance GROUP BY lat,lon HAVING COUNT(*)=1)
+
+-- ex6: Leetcode Department Top Three Salaries
+WITH IT_salary_rank AS (SELECT DISTINCT salary, ROW_NUMBER() OVER(ORDER BY salary DESC) AS salary_rank
+FROM Employee
+WHERE departmentID = 1
+GROUP BY salary
+ORDER BY salary DESC
+LIMIT 3),
+Sales_salary_rank AS (SELECT DISTINCT salary, ROW_NUMBER() OVER(ORDER BY salary DESC) AS salary_rank
+FROM Employee
+WHERE departmentID = 2
+GROUP BY salary
+ORDER BY salary DESC
+LIMIT 3)
+SELECT Department.name AS Department, Employee.name AS Employee, Employee.salary AS Salary
+FROM Employee
+INNER JOIN Department ON Employee.departmentId = Department.id
+WHERE Employee.salary IN (SELECT salary FROM IT_salary_rank) OR Employee.salary IN(SELECT salary FROM Sales_salary_rank)
+ORDER BY Employee.salary DESC, Department.id, Employee.id;
+
+-- ex7: Last Person to Fit in the Bus
+WITH cte_person_on_board AS (SELECT turn, CASE WHEN total_weight < 1000 OR total_weight = 1000 AND turn+1 IN (SELECT turn FROM Queue) THEN person_name ELSE NULL END AS person_name
+FROM (SELECT turn, person_id, person_name, weight, SUM(weight) OVER(ORDER BY turn) AS total_weight
+FROM Queue) t)
+SELECT person_name FROM cte_person_on_board
+WHERE person_name IS NOT NULL
+ORDER BY turn DESC
+LIMIT 1
+
+-- ex8: Leetcode Product Price at a Given Date
+WITH cte_recent_prices AS (SELECT product_id, new_price, ROW_NUMBER() OVER(PARTITION BY product_id ORDER BY change_date DESC) AS recency
+FROM Products
+WHERE change_date <= DATE'2019-08-16'
+ORDER BY product_id, recency)
+SELECT product_id, new_price AS price
+FROM cte_recent_prices
+WHERE recency = 1
+
+UNION 
+
+SELECT product_id, 10 AS price
+FROM Products
+WHERE product_id NOT IN (SELECT product_id FROM cte_recent_prices)
+ORDER BY product_id
